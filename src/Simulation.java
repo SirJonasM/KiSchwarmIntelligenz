@@ -12,18 +12,16 @@ public class Simulation extends JFrame {
 
 	Random random  = new Random();
 	static double time = 0.01;
-	int i = 2;
 	static double day = 0;
 	static int daySwitch = 0;
 	static int infected = 0;
 
 	static int sleep = 8; // 8
 	static double pix = 0.2;// 0.2
-	int anzTeamMembers = 3;
-	int anzRed = 20;
-	ArrayList<Vehicle> allVehicles = new ArrayList<Vehicle>();
-	ArrayList<Vehicle> blueVehicles = new ArrayList<Vehicle>();
-	ArrayList<Vehicle> redVehicles = new ArrayList<Vehicle>();
+	int anzTeamMembers = 20;
+	ArrayList<Vehicle> allVehicles = new ArrayList<>();
+	ArrayList<Vehicle> blueVehicles = new ArrayList<>();
+	ArrayList<Vehicle> redVehicles = new ArrayList<>();
 	Map<Integer, Team> teams = new HashMap<>();
 	JPanel canvas;
 
@@ -51,17 +49,17 @@ public class Simulation extends JFrame {
 
 	}
 
-	public static void main(String args[]) {
+	public static void main(String[] args) throws Exception {
 		Simulation xx = new Simulation();
 		xx.run();
 	}
 
-	public void run() {
+	public void run() throws Exception {
 		Vehicle v;
 		while (true) {
 			for (int i = 0; i < allVehicles.size(); i++) {
 				v = allVehicles.get(i);
-				v.steuern(allVehicles);
+				v.steuern(allVehicles,teams);
 				if(v.team == 1)infected++;
 			}
 			try {

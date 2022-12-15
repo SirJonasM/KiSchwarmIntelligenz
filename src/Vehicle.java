@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 
 public class Vehicle {
@@ -23,6 +24,7 @@ public class Vehicle {
 	double max_vel; // Maximale Geschwindigkeit meter/Simulation.time soll immer 1 meter proSimulationszeit entsprechen
 	final double rad_Virus;
 	boolean hadContact = false;
+	private boolean dead;
 
 
 	Vehicle(int team) {
@@ -45,11 +47,12 @@ public class Vehicle {
 		vel[0] = max_vel * Math.random();
 		vel[1] = max_vel * Math.random();
 	}
-
+	// Nachbarn ermitteln:
+	// Methoden um entweder alle, eigene Teammitglieder oder gegnerische Personen
+	// in der Nähe zu ermitteln.
 	ArrayList<Vehicle> nachbarErmitteln(ArrayList<Vehicle> all, double radius1, double radius2) {
 		ArrayList<Vehicle> neighbours = new ArrayList<>();
-		for (int i = 0; i < all.size(); i++) {
-			Vehicle v = all.get(i);
+		for (Vehicle v : all) {
 			if (v.id != this.id) {
 				double dist = Math.sqrt(Math.pow(v.pos[0] - this.pos[0], 2) + Math.pow(v.pos[1] - this.pos[1], 2));
 				if (dist >= radius1 && dist < radius2) {
@@ -60,7 +63,24 @@ public class Vehicle {
 		return neighbours;
 	}
 
-	double[] beschleunigungErmitteln(double[] vel_dest) {
+	private ArrayList<Vehicle> getTeamMembersInRadius(ArrayList<Vehicle> vehicles, double radius1, double radius2) {
+		return nachbarErmitteln(vehicles,radius1,radius2);
+
+
+	}
+	private ArrayList<Vehicle> getEnemiesInRadius(ArrayList<Vehicle> allVehicles, double radius2, int t){
+		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,0,radius2);
+		ArrayList<Vehicle> specificReversedNeighbours = new ArrayList<>();
+		for (Vehicle neighbour : neighbours) {
+			if (neighbour.team != t) specificReversedNeighbours.add(neighbour);
+		}
+		return specificReversedNeighbours;
+	}
+
+	//Nachbarn ermitteln änderen
+
+	//Steuern Anfang: Methoden um das bewegen des Vehicles zu berechnen
+	double[] calculateAcceleration(double[] vel_dest) {
 		//Berechnet die notwendige Beschleunigung, um eine Zielgeschwindigkeit vel_dest zu erreichen
 		double[] acc_dest = new double[2];
 
@@ -76,8 +96,7 @@ public class Vehicle {
 		return acc_dest;
 	}
 
-//cohesion
-	double[] zusammenbleiben(ArrayList<Vehicle> all) {
+	double[] zusammenbleiben(Map<Integer,Team> teams) {
 
 		ArrayList<Vehicle> neighbours;
 		double[] pos_dest = new double[2];
@@ -86,14 +105,13 @@ public class Vehicle {
 
 		acc_dest[0] = 0;
 		acc_dest[1] = 0;
-		neighbours = getOnlySpecificType(all, radiusSeperateFromEnemies, rad_zus,0);
+		neighbours = getTeamMembersInRadius(teams.get(team).getTeamMembers(), radiusSeperateFromAllies, rad_zus);
 		if (neighbours.isEmpty()) return acc_dest;
 
 		// 1. Zielposition pos_dest berechnen
 		pos_dest[0] = 0;
 		pos_dest[1] = 0;
 		for (Vehicle v : neighbours) {
-			if (v.team == 1) continue;
 			pos_dest[0] = pos_dest[0] + v.pos[0];
 			pos_dest[1] = pos_dest[1] + v.pos[1];
 		}
@@ -105,27 +123,9 @@ public class Vehicle {
 		vel_dest[1] = pos_dest[1] - pos[1];
 
 		// 3. Zielbeschleunigung acc_dest berechnen
-		acc_dest = beschleunigungErmitteln(vel_dest);
+		acc_dest = calculateAcceleration(vel_dest);
 		return acc_dest;
 	}
-
-	private ArrayList<Vehicle> getOnlySpecificType(ArrayList<Vehicle> allVehicles, double radius1, double radius2,int t) {
-		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,radius1,radius2);
-		ArrayList<Vehicle> specificNeighbours = new ArrayList<>();
-		for (Vehicle neighbour : neighbours) {
-			if (neighbour.team == t) specificNeighbours.add(neighbour);
-		}
-		return specificNeighbours;
-	}
-	private ArrayList<Vehicle> getOnlySpecificTypeReversed(ArrayList<Vehicle> allVehicles, double radius1, double radius2,int t){
-		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,radius1,radius2);
-		ArrayList<Vehicle> specificNeighbours = new ArrayList<>();
-		for (Vehicle neighbour : neighbours) {
-			if (neighbour.team != t) specificNeighbours.add(neighbour);
-		}
-		return specificNeighbours;
-	}
-
 	double[] separieren(ArrayList<Vehicle> neighbours,double rad){
 		double[] vel_dest = new double[2];
 		double[] acc_dest = new double[2];
@@ -154,29 +154,29 @@ public class Vehicle {
 		}
 
 		// 2. Zielbeschleunigung acc_dest berechnen
-		acc_dest = beschleunigungErmitteln(vel_dest);
+		acc_dest = calculateAcceleration(vel_dest);
 
 		return acc_dest;
 
 	}
 	double[] separierenVonEnemies(ArrayList<Vehicle> allVehicles) {
-		ArrayList<Vehicle> neighbours  = getOnlySpecificTypeReversed(allVehicles, 0, radiusSeperateFromEnemies,0);
+		ArrayList<Vehicle> neighbours  = getEnemiesInRadius(allVehicles,  radiusSeperateFromEnemies,team);
 		return separieren(neighbours, radiusSeperateFromEnemies);
 	}
-	private double[] separierenVonTeam(ArrayList<Vehicle> allVehicles) {
-		ArrayList<Vehicle> neighbours  = getOnlySpecificType(allVehicles, 0, radiusSeperateFromAllies,1);
+	private double[] separierenVonTeam(Map<Integer,Team> teams) {
+		ArrayList<Vehicle> neighbours  = getTeamMembersInRadius(teams.get(team).teamMembers, 0, radiusSeperateFromAllies);
 		return separieren(neighbours, radiusSeperateFromAllies);
 	}
 
 
-	double[] ausrichten(ArrayList<Vehicle> all) {
+	double[] ausrichten(Map<Integer,Team> teams) {
 		ArrayList<Vehicle> neighbours;
 		double[] vel_dest = new double[2];
 		double[] acc_dest = new double[2];
 		acc_dest[0] = 0;
 		acc_dest[1] = 0;
 
-		neighbours = getOnlySpecificType(all, 0, rad_zus,team);
+		neighbours = getTeamMembersInRadius(teams.get(team).teamMembers, 0, rad_zus);
 		if(neighbours.isEmpty()) return acc_dest;
 		for (Vehicle neighbour : neighbours) {
 				if (neighbour.team == 1) continue;
@@ -187,7 +187,7 @@ public class Vehicle {
 
 		vel_dest[0] = vel_dest[0] / neighbours.size();
 		vel_dest[1] = vel_dest[1] / neighbours.size();
-		acc_dest = beschleunigungErmitteln(vel_dest);
+		acc_dest = calculateAcceleration(vel_dest);
 
 		return acc_dest;
 	}
@@ -205,18 +205,21 @@ public class Vehicle {
 		return acc_dest;
 	}
 
-	public double[] beschleunigung_festlegen(ArrayList<Vehicle> allVehicles) {
-		//Setze die Faktoren wie die einzelnen Vektoren gewichtet werden sollen
-		double groupFactor = 0.2; // 0.05
-		double separateFromEnemiesFactor = 0.4;
-		double separateFromAlliesFactor = 0.2;
-		double adjustFactor = 0.2; // 0.4
-
+	public double[] beschleunigung_festlegen(ArrayList<Vehicle> allVehicles,Map<Integer,Team> teams) throws Exception {
+		//Setze die Faktoren wie die einzelnen Vektoren gewichtet werden sollen muss insgesamt 100 ergeben
+		int groupFactor = 30; // 0.05
+		int separateFromEnemiesFactor = 50;
+		int separateFromAlliesFactor = 5;
+		int adjustFactor = 5; // 0.4
+		int randomFactor = 10;
+		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor !=100)
+			throw new Exception();
 		//berechnet die einzelnen Vektore n
-		double[] group = zusammenbleiben(allVehicles);
+		double[] group = zusammenbleiben(teams);
 		double[] separateFromEnemies = separierenVonEnemies(allVehicles);
-		double[] separateFromAllies = separierenVonTeam(allVehicles);
-		double[] adjust = ausrichten(allVehicles);
+		double[] separateFromAllies = separierenVonTeam(teams);
+		double[] adjust = ausrichten(teams);
+		double[] random = zufall();
 
 		//gewichtet diese Vektoren
 		group[0] = group[0] * groupFactor;
@@ -231,33 +234,24 @@ public class Vehicle {
 		adjust[0] = adjust[0] * adjustFactor;
 		adjust[1] = adjust[0] * adjustFactor;
 
+		random[0] = random[0]*randomFactor;
+		random[1] = random[1]*randomFactor;
+
 		//Berechne den gewichteten Beschleunigunsvektor
 		double[] acceleration = new double[]{
-				group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0],
-				group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1]};
+				(group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0] + random[0])/100.0,
+				(group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1] + random[1])/100.0};
 		acceleration = Vektorrechnung.truncate(acceleration, max_acc);
 		return acceleration;
 	}
-
-	public void virus(ArrayList<Vehicle> allVehicles) {
-		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,0,rad_Virus);
-		double probability = 0;
-		for(Vehicle vehicle : neighbours){
-			if(vehicle.team ==1)probability+=0.001;;
-		}
-		if(probability>0.7) probability = 0.7;
-
-		if(wasInfected){
-			probability /= 10;
-		}
-		if(random.nextDouble() < probability){
-			infect();
-		}
-		wasInfected = team == 1;
+	public void updateVelocity(){
+		double fraction = Simulation.time / Simulation.standartTime;
+		max_acc = accDefined * Math.pow(fraction,2.0);
+		max_vel = velDefined * fraction;
 	}
 
-	void steuern(ArrayList<Vehicle> allVehicles) {
-		double[] acc_dest = beschleunigung_festlegen(allVehicles);
+	void steuern(ArrayList<Vehicle> allVehicles,Map<Integer,Team> teams) throws Exception {
+		double[] acc_dest = beschleunigung_festlegen(allVehicles,teams);
 	
 		// 2. Neue Geschwindigkeit berechnen
 		vel[0] = vel[0] + acc_dest[0];
@@ -292,87 +286,30 @@ public class Vehicle {
 			pos[1] = pos[1] + vel[1];
 		}
 	}
-	
+	//Steuern ende
 
-	
-	double[] folgen(ArrayList<Vehicle> all) {
-		double[] pos_dest = new double[2];
-		double[] vel_dest = new double[2];
-		double[] acc_dest = new double[2];
-		acc_dest[0] = 0;
-		acc_dest[1] = 0;
-		Vehicle v = null;
 
-		if (team == 0) {
-			for (Vehicle vehicle : all) {
-				v = vehicle;
-				if (v.team == 1)
-					break;
-			}
-			double dist = Math.sqrt(Math.pow(v.pos[0] - this.pos[0], 2) + Math.pow(v.pos[1] - this.pos[1], 2));
-
-			if (dist < rad_zus && inFront(v)) {
-				double[] pkt = new double[2];
-				double[] ort1 = new double[2];
-				double[] ort2 = new double[2];
-				double[] ort3 = new double[2];
-				pkt[0] = pos[0];
-				pkt[1] = pos[1];
-				ort1[0] = v.pos[0];
-				ort1[1] = v.pos[1];
-				ort2[0] = v.pos[0] + (rad_zus * v.vel[0]);
-				ort2[1] = v.pos[1] + (rad_zus * v.vel[1]);
-				ort3 = Vektorrechnung.punktVektorMINAbstand_punkt(pkt, ort1, ort2);
-
-				vel_dest[0] = pos[0] - ort3[0];// UUU
-				vel_dest[1] = pos[1] - ort3[1];// III
-
-				vel_dest = Vektorrechnung.normalize(vel_dest);
-				vel_dest[0] = vel_dest[0] * max_vel;
-				vel_dest[1] = vel_dest[1] * max_vel;
-
-				acc_dest[0] = vel_dest[0] - vel[0];
-				acc_dest[1] = vel_dest[1] - vel[1];
-			} else if (dist < rad_zus && !inFront(v)) {
-				pos_dest[0] = v.pos[0] + v.vel[0];
-				pos_dest[1] = v.pos[1] + v.vel[0];
-				vel_dest[0] = pos_dest[0] - pos[0];
-				vel_dest[1] = pos_dest[1] - pos[1];
-				vel_dest = Vektorrechnung.normalize(vel_dest);
-				vel_dest[0] = vel_dest[0] * max_vel;
-				vel_dest[1] = vel_dest[1] * max_vel;
-				acc_dest[0] = vel_dest[0] - vel[0];
-				acc_dest[1] = vel_dest[1] - vel[1];
-			} else {
-				acc_dest = zusammenbleiben(all);
-			}
+	public void virus(ArrayList<Vehicle> allVehicles) {
+		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,0,rad_Virus);
+		double probability = 0;
+		for(Vehicle vehicle : neighbours){
+			if(vehicle.team ==1)probability+=0.001;
 		}
+		if(probability>0.7) probability = 0.7;
 
-		return acc_dest;
+		if(wasInfected){
+			probability /= 10;
+		}
+		if(random.nextDouble() < probability){
+			infect();
+		}
+		wasInfected = team == 1;
 	}
-
-	boolean inFront(Vehicle v) {
-		//
-		boolean erg = false;
-		double[] tmp = new double[2];
-		tmp[0] = pos[0] - v.pos[0];
-		tmp[1] = pos[1] - v.pos[1];
-
-		erg = Vektorrechnung.winkel(tmp, v.vel) < Math.PI / 2;
-
-		return erg;
-	}
-
-
 	public void infect() {
 		max_vel = 0;
 		wasInfected = true;
-		team = 1;
+		dead = true;
+	}
 
-	}
-	public void setVelocity(){
-		double fraction = Simulation.time / Simulation.standartTime;
-		max_acc = accDefined * Math.sqrt(fraction);
-		max_vel = velDefined * fraction;
-	}
+
 }

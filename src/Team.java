@@ -17,7 +17,7 @@ public class Team {
     }
 
     public void addTeamMember(Vehicle vehicle) {
-        vehicle.setVelocity();
+        vehicle.updateVelocity();
         teamMembers.add(vehicle);
     }
 }

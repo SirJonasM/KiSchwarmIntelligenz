@@ -43,7 +43,7 @@ public class Canvas extends JPanel {
 	public void paintComponent(Graphics g) {
     	super.paintComponent(g);
     	Graphics2D g2d = (Graphics2D) g;
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+		//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setColor(Color.LIGHT_GRAY);
 		g2d.drawString("Speed x" + ((int)(Simulation.time*100)),700,20);
 
@@ -63,7 +63,7 @@ public class Canvas extends JPanel {
 
 	private void addSomeoneActionListener(int team) {
 		Vehicle vehicle = new Vehicle(team);
-		vehicle.setVelocity();
+		vehicle.updateVelocity();
 		allVehicles.add(vehicle);
 		teams.get(team).addTeamMember(vehicle);
 	}
@@ -72,7 +72,7 @@ public class Canvas extends JPanel {
 		if((round(Simulation.time) == 0 && round(savedTime) == 0)) Simulation.time = 0.01;
 		else if(round(Simulation.time )==0) Simulation.time = savedTime;
 		else Simulation.time = 0;
-		allVehicles.forEach(Vehicle::setVelocity);
+		allVehicles.forEach(Vehicle::updateVelocity);
 	}
 
 	private void fasterActionListener() {
@@ -81,7 +81,7 @@ public class Canvas extends JPanel {
 		currentTime = Math.round(currentTime*100)/100.0;
 		if(currentTime > Simulation.maximalTime) return;
 		Simulation.time  = currentTime;
-		allVehicles.forEach(Vehicle::setVelocity);
+		allVehicles.forEach(Vehicle::updateVelocity);
 	}
 
 	private void slowerActionListener() {
@@ -90,7 +90,7 @@ public class Canvas extends JPanel {
 		currentTime = Math.round(currentTime*100)/100.0;
 		if(currentTime < Simulation.minimalTime) currentTime = 0;
 		Simulation.time = currentTime;
-		allVehicles.forEach(Vehicle::setVelocity);
+		allVehicles.forEach(Vehicle::updateVelocity);
 	}
 
 	private int round(double time) {
