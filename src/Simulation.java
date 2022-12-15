@@ -8,8 +8,10 @@ import javax.swing.*;
 
 public class Simulation extends JFrame {
 	public static final double standartTime = 0.01;
-	public static final double maximalTime = 0.2;
+	public static final double maximalTime = 0.10;
 	public static final double minimalTime = 0.0;
+	public static int width = 600;
+	public static int hight = 400;
 
 	Random random  = new Random();
 	static double time = 0.0;
@@ -17,9 +19,9 @@ public class Simulation extends JFrame {
 	static int daySwitch = 0;
 	static int sleep = 8; // 8
 	static double pix = 0.2;// 0.2
-	int anzTeamMembers = 40;
+	int anzTeamMembers = 20;
 	int teamCount = 10;
-	Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW,Color.PINK,Color.CYAN,Color.ORANGE,Color.BLACK,Color.DARK_GRAY};
+	Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW,Color.PINK,Color.CYAN,Color.ORANGE,Color.WHITE,Color.LIGHT_GRAY,Color.MAGENTA};
 	ArrayList<Vehicle> allVehicles = new ArrayList<>();
 	final int MAXTEAMS = colors.length;
 	Map<Integer, Team> teams = new HashMap<>();
@@ -47,7 +49,7 @@ public class Simulation extends JFrame {
 		}
 		canvas = new Canvas(allVehicles,pix,teams);
 		add(canvas);
-		setSize(1000, 800);
+		setSize(width, hight);
 		setVisible(true);
 
 	}

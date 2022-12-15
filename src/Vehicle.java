@@ -196,12 +196,12 @@ public class Vehicle {
 
 	public double[] beschleunigung_festlegen(ArrayList<Vehicle> allVehicles,Map<Integer,Team> teams) throws Exception {
 		//Setze die Faktoren wie die einzelnen Vektoren gewichtet werden sollen muss insgesamt 100 ergeben
-		int groupFactor = 30; // 0.05
-		int separateFromEnemiesFactor = 20;
+		int groupFactor = 37; // 0.05
+		int separateFromEnemiesFactor = 15;
 		int separateFromAlliesFactor = 5;
 		int adjustFactor = 5; // 0.4
-		int randomFactor = 38;
-		int randomTeamVectorFactor = 2;
+		int randomFactor = 35;
+		int randomTeamVectorFactor = 3;
 
 		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor+randomTeamVectorFactor !=100)
 			throw new Exception();
@@ -248,7 +248,7 @@ public class Vehicle {
 	}
 	public void updateVelocity(){
 		double fraction = Simulation.time / Simulation.standartTime;
-		max_acc = accDefined * fraction;
+		max_acc = accDefined * Math.sqrt(fraction);
 		max_vel = velDefined * fraction;
 	}
 
@@ -275,7 +275,7 @@ public class Vehicle {
 			vel[0] = Math.abs(vel[0]);
 			pos[0] = pos[0] + vel[0];
 		}
-		if (pos[0] > 1000 * Simulation.pix) {
+		if (pos[0] > Simulation.width * Simulation.pix) {
 			vel[0] = -Math.abs(vel[0]);
 			pos[0] = pos[0] + vel[0];
 		}
@@ -283,7 +283,7 @@ public class Vehicle {
 			vel[1] = Math.abs(vel[1]);
 			pos[1] = pos[1] + vel[1];
 		}
-		if (pos[1] > 700 * Simulation.pix) {
+		if (pos[1] > Simulation.hight * Simulation.pix) {
 			vel[1] = -Math.abs(vel[1]);
 			pos[1] = pos[1] + vel[1];
 		}

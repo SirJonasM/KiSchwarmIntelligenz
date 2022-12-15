@@ -8,7 +8,6 @@ import javax.swing.*;
 
 public class Canvas extends JPanel {
 	double savedTime = 0.1;
-	Random random = new Random();
 	ArrayList<Vehicle> 	allVehicles;
 	Map<Integer,Team> teams;
 	double pix;	
@@ -17,26 +16,31 @@ public class Canvas extends JPanel {
 		this.allVehicles = allVehicles;
 		this.pix         = pix;
 		this.teams 		 = teams;
-		this.setBackground(Color.WHITE);
-		setSize(1000,800);
+		this.setBackground(Color.BLACK);
+		setSize(Simulation.width,Simulation.hight);
 		JButton faster = new JButton("Faster");
 		JButton slower = new JButton("Slower");
 		JButton stopAndGO = new JButton("Play/Pause");
-		JButton addSomeoneBlue = new JButton("Add Someone to Blue");
-		JButton addSomeoneRed = new JButton("Add Someone to Red");
-
+		JButton addSomeone = new JButton("Add Someone to Blue");
+		JSlider slider = new JSlider();
+		slider.setValue(Simulation.sleep*10);
 
 		slower.addActionListener(event -> slowerActionListener());
 		faster.addActionListener(event -> fasterActionListener());
 		stopAndGO.addActionListener(event ->stopAndGoActionListener());
-		addSomeoneBlue.addActionListener(event -> addSomeoneActionListener(0));
-		addSomeoneRed.addActionListener(event -> addSomeoneActionListener(1));
+		addSomeone.addActionListener(event -> addSomeoneActionListener(0));
+		slider.addChangeListener(event -> sliderChangeListener(slider));
 
 		this.add(slower);
 		this.add(faster);
 		this.add(stopAndGO);
-		this.add(addSomeoneBlue);
-		this.add(addSomeoneRed);
+		this.add(addSomeone);
+		this.add(slider);
+	}
+
+	private void sliderChangeListener(JSlider slider) {
+		int sleep = slider.getValue()/10;
+		Simulation.sleep = 10-sleep;
 	}
 
 
@@ -45,14 +49,14 @@ public class Canvas extends JPanel {
     	Graphics2D g2d = (Graphics2D) g;
 		//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setColor(Color.LIGHT_GRAY);
-		g2d.drawString("Speed x" + ((int)(Simulation.time*100)),800,20);
-
+		g2d.drawString("Speed x" + ((Simulation.sleep)),820,20);
+		g2d.drawString("Velocity: " + Math.round(Simulation.time*100),120,20);
 		for(Team team : teams.values()){
 			paintTeam(g2d,team);
 
 		}
 		g2d.setColor(Color.BLACK);
-		g2d.drawString("Tag: " + (int) Simulation.day,900,700);
+		g2d.drawString("Time: " + (int) Simulation.day,900,700);
     }
 
 	private void paintTeam(Graphics2D g2d,Team team) {
@@ -69,8 +73,9 @@ public class Canvas extends JPanel {
 			g2d.fillOval((int)(vehicle.pos[0]/pix),(int)(vehicle.pos[1]/pix),5,5);
 		}
 	}
-
+//TODO: Todo
 	private void addSomeoneActionListener(int team) {
+		System.out.println("NEEDS TO BE IMPLEMENTED");
 		Vehicle vehicle = new Vehicle(team);
 		vehicle.updateVelocity();
 		allVehicles.add(vehicle);
