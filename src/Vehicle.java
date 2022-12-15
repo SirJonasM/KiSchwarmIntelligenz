@@ -14,10 +14,8 @@ public class Vehicle {
 	double radiusSeperateFromEnemies; // Radius f�r Zusammenbleiben
 	double radiusSeperateFromAllies;
 
-	double rad_zus; // Radius f�r Separieren
+	double radiusToGroup; // Radius f�r Separieren
 	int team; // Fahrzeug-Type (0: Verfolger; 1: Anf�hrer)
-	final double FZL; // L�nge
-	final double FZB; // Breite
 	double[] pos; // Position
 	double[] vel; // Geschwindigkeit
 	double max_acc; // Maximale Beschleunigung meter/Simulation.time^2
@@ -30,11 +28,11 @@ public class Vehicle {
 	Vehicle(int team) {
 		allId++;
 		this.id = allId;
-		this.FZL = 1;
-		this.FZB = 1;
-		this.radiusSeperateFromEnemies = 40;
-		this.radiusSeperateFromAllies = 25;
-		this.rad_zus = 100;// 25
+
+		this.radiusSeperateFromEnemies = 30;
+		this.radiusSeperateFromAllies = 20;
+		this.radiusToGroup = 50;// 25
+
 		this.max_acc = 0.15;// 0.1
 		this.max_vel = 0.1;
 		this.rad_Virus = 25;
@@ -65,8 +63,6 @@ public class Vehicle {
 
 	private ArrayList<Vehicle> getTeamMembersInRadius(ArrayList<Vehicle> vehicles, double radius1, double radius2) {
 		return nachbarErmitteln(vehicles,radius1,radius2);
-
-
 	}
 	private ArrayList<Vehicle> getEnemiesInRadius(ArrayList<Vehicle> allVehicles, double radius2, int t){
 		ArrayList<Vehicle> neighbours = nachbarErmitteln(allVehicles,0,radius2);
@@ -105,7 +101,7 @@ public class Vehicle {
 
 		acc_dest[0] = 0;
 		acc_dest[1] = 0;
-		neighbours = getTeamMembersInRadius(teams.get(team).getTeamMembers(), radiusSeperateFromAllies, rad_zus);
+		neighbours = getTeamMembersInRadius(teams.get(team).getTeamMembers(), radiusSeperateFromAllies, radiusToGroup);
 		if (neighbours.isEmpty()) return acc_dest;
 
 		// 1. Zielposition pos_dest berechnen
@@ -176,13 +172,12 @@ public class Vehicle {
 		acc_dest[0] = 0;
 		acc_dest[1] = 0;
 
-		neighbours = getTeamMembersInRadius(teams.get(team).teamMembers, 0, rad_zus);
+		neighbours = getTeamMembersInRadius(teams.get(team).teamMembers, 0, radiusToGroup);
 		if(neighbours.isEmpty()) return acc_dest;
 		for (Vehicle neighbour : neighbours) {
-				if (neighbour.team == 1) continue;
-				double[] richtung = neighbour.vel;
-				vel_dest[0] += richtung[0];
-				vel_dest[1] += richtung[1];
+				double[] direction = neighbour.vel;
+				vel_dest[0] += direction[0];
+				vel_dest[1] += direction[1];
 			}
 
 		vel_dest[0] = vel_dest[0] / neighbours.size();
@@ -194,32 +189,34 @@ public class Vehicle {
 
 	double[] zufall() {
 		double[] acc_dest = new double[2];
-		acc_dest[0] = 0;
-		acc_dest[1] = 0;
-
-		if (Math.random() < 0.01) {
-			acc_dest[0] = max_acc * Math.random();
-			acc_dest[1] = max_acc * Math.random();
-		}
-
+		acc_dest[0] = max_acc * (Math.random()-0.5)/100.0;
+		acc_dest[1] = max_acc * (Math.random()-0.5)/100.0;
 		return acc_dest;
 	}
 
 	public double[] beschleunigung_festlegen(ArrayList<Vehicle> allVehicles,Map<Integer,Team> teams) throws Exception {
 		//Setze die Faktoren wie die einzelnen Vektoren gewichtet werden sollen muss insgesamt 100 ergeben
 		int groupFactor = 30; // 0.05
-		int separateFromEnemiesFactor = 50;
+		int separateFromEnemiesFactor = 20;
 		int separateFromAlliesFactor = 5;
 		int adjustFactor = 5; // 0.4
-		int randomFactor = 10;
-		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor !=100)
+		int randomFactor = 38;
+		int randomTeamVectorFactor = 2;
+
+		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor+randomTeamVectorFactor !=100)
 			throw new Exception();
-		//berechnet die einzelnen Vektore n
+
+
+		//berechnet die einzelnen Vektoren
 		double[] group = zusammenbleiben(teams);
 		double[] separateFromEnemies = separierenVonEnemies(allVehicles);
 		double[] separateFromAllies = separierenVonTeam(teams);
 		double[] adjust = ausrichten(teams);
 		double[] random = zufall();
+
+		double[] randomFromTeam = teams.get(team).getRandomVector();
+
+
 
 		//gewichtet diese Vektoren
 		group[0] = group[0] * groupFactor;
@@ -237,16 +234,21 @@ public class Vehicle {
 		random[0] = random[0]*randomFactor;
 		random[1] = random[1]*randomFactor;
 
+		randomFromTeam[0] *= max_acc * randomTeamVectorFactor;
+		randomFromTeam[1] *= max_acc * randomTeamVectorFactor;
+
+
+
 		//Berechne den gewichteten Beschleunigunsvektor
 		double[] acceleration = new double[]{
-				(group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0] + random[0])/100.0,
-				(group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1] + random[1])/100.0};
+				(group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0] + random[0]+randomFromTeam[0])/100.0,
+				(group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1] + random[1]+randomFromTeam[1])/100.0};
 		acceleration = Vektorrechnung.truncate(acceleration, max_acc);
 		return acceleration;
 	}
 	public void updateVelocity(){
 		double fraction = Simulation.time / Simulation.standartTime;
-		max_acc = accDefined * Math.pow(fraction,2.0);
+		max_acc = accDefined * fraction;
 		max_vel = velDefined * fraction;
 	}
 

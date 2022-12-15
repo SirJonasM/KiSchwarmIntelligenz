@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,17 +12,16 @@ public class Simulation extends JFrame {
 	public static final double minimalTime = 0.0;
 
 	Random random  = new Random();
-	static double time = 0.01;
+	static double time = 0.0;
 	static double day = 0;
 	static int daySwitch = 0;
-	static int infected = 0;
-
 	static int sleep = 8; // 8
 	static double pix = 0.2;// 0.2
-	int anzTeamMembers = 20;
+	int anzTeamMembers = 40;
+	int teamCount = 10;
+	Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW,Color.PINK,Color.CYAN,Color.ORANGE,Color.BLACK,Color.DARK_GRAY};
 	ArrayList<Vehicle> allVehicles = new ArrayList<>();
-	ArrayList<Vehicle> blueVehicles = new ArrayList<>();
-	ArrayList<Vehicle> redVehicles = new ArrayList<>();
+	final int MAXTEAMS = colors.length;
 	Map<Integer, Team> teams = new HashMap<>();
 	JPanel canvas;
 
@@ -29,19 +29,22 @@ public class Simulation extends JFrame {
 		setTitle("Swarm");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
-
-		for (int k = 0; k < anzTeamMembers; k++) {
-			Vehicle car1 = new Vehicle(0);
-			Vehicle car2 = new Vehicle(1);
-			blueVehicles.add(car1);
-			redVehicles.add(car2);
-
-			allVehicles.add(car1);
-			allVehicles.add(car2);
+		if(teamCount >MAXTEAMS) teamCount = MAXTEAMS;
+		for(int i = 0; i<teamCount;i++){
+			Team team = new Team(new ArrayList<>(),colors[i]);
+			teams.put(team.id,team);
 		}
-		teams.put(0,new Team(blueVehicles));
-		teams.put(1,new Team(redVehicles));
-
+		for (int k = 0; k < anzTeamMembers; k++) {
+			for (int i = 0; i < teamCount; i++) {
+				Vehicle car = new Vehicle(i);
+				car.updateVelocity();
+				teams.get(i).addTeamMember(car);
+				allVehicles.add(car);
+			}
+		}
+		for(Team team : teams.values()){
+			team.setUp();
+		}
 		canvas = new Canvas(allVehicles,pix,teams);
 		add(canvas);
 		setSize(1000, 800);
@@ -57,10 +60,10 @@ public class Simulation extends JFrame {
 	public void run() throws Exception {
 		Vehicle v;
 		while (true) {
+			teams.values().forEach(Team::setRandomVector);
 			for (int i = 0; i < allVehicles.size(); i++) {
 				v = allVehicles.get(i);
 				v.steuern(allVehicles,teams);
-				if(v.team == 1)infected++;
 			}
 			try {
 				Thread.sleep(sleep);

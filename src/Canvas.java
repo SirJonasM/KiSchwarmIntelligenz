@@ -45,21 +45,30 @@ public class Canvas extends JPanel {
     	Graphics2D g2d = (Graphics2D) g;
 		//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setColor(Color.LIGHT_GRAY);
-		g2d.drawString("Speed x" + ((int)(Simulation.time*100)),700,20);
+		g2d.drawString("Speed x" + ((int)(Simulation.time*100)),800,20);
 
-		for (Vehicle fz : allVehicles) {
-			if (fz.team == 1) {
-				g2d.setColor(Color.RED);
-			}
-			else if(fz.team == 0){
-				g2d.setColor(Color.BLUE);
-			}
-			g2d.fillOval((int)(fz.pos[0]/pix),(int)(fz.pos[1]/pix),5,5);
+		for(Team team : teams.values()){
+			paintTeam(g2d,team);
+
 		}
 		g2d.setColor(Color.BLACK);
-		g2d.drawString("Infected: " + Simulation.infected,900,720);
 		g2d.drawString("Tag: " + (int) Simulation.day,900,700);
     }
+
+	private void paintTeam(Graphics2D g2d,Team team) {
+		g2d.setColor(team.getColor());
+		for(Vehicle vehicle : team.teamMembers){
+			if(vehicle.id == team.currentInfecter){
+				g2d.fillOval((int)(vehicle.pos[0]/pix),(int)(vehicle.pos[1]/pix),10,7);
+				continue;
+			}
+			if(vehicle.id == team.currentUninfecter){
+				g2d.drawOval((int)(vehicle.pos[0]/pix),(int)(vehicle.pos[1]/pix),10,7);
+				continue;
+			}
+			g2d.fillOval((int)(vehicle.pos[0]/pix),(int)(vehicle.pos[1]/pix),5,5);
+		}
+	}
 
 	private void addSomeoneActionListener(int team) {
 		Vehicle vehicle = new Vehicle(team);
