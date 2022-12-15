@@ -216,7 +216,7 @@ public class Vehicle {
 
 		double[] randomFromTeam = teams.get(team).getRandomVector();
 
-
+//Legenden Kommentar: '*+##+§$%
 
 		//gewichtet diese Vektoren
 		group[0] = group[0] * groupFactor;
@@ -248,7 +248,7 @@ public class Vehicle {
 	}
 	public void updateVelocity(){
 		double fraction = Simulation.time / Simulation.standartTime;
-		max_acc = accDefined * fraction;
+		max_acc = accDefined * Math.sqrt(fraction);
 		max_vel = velDefined * fraction;
 	}
 
