@@ -8,3 +8,5 @@ Ein spiel:
 - Infizierte sterben nach ner zeit
 - Und wer zuletzt steht gewinnt
 - Und dann macht man halt für jedes Team unterschiedliche Schwarm arten
+
+Ich bin der Uwe und ich bin auch dabei
