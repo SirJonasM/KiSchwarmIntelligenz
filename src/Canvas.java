@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 
 import javax.swing.*;
@@ -9,27 +10,33 @@ public class Canvas extends JPanel {
 	double savedTime = 0.1;
 	Random random = new Random();
 	ArrayList<Vehicle> 	allVehicles;
+	Map<Integer,Team> teams;
 	double pix;	
 	
-	Canvas(ArrayList<Vehicle> allVehicles, double pix){
+	Canvas(ArrayList<Vehicle> allVehicles, double pix, Map<Integer,Team> teams){
 		this.allVehicles = allVehicles;
 		this.pix         = pix;
+		this.teams 		 = teams;
 		this.setBackground(Color.WHITE);
 		setSize(1000,800);
 		JButton faster = new JButton("Faster");
 		JButton slower = new JButton("Slower");
 		JButton stopAndGO = new JButton("Play/Pause");
-		JButton infectSomone = new JButton("Infect");
+		JButton addSomeoneBlue = new JButton("Add Someone to Blue");
+		JButton addSomeoneRed = new JButton("Add Someone to Red");
+
 
 		slower.addActionListener(event -> slowerActionListener());
 		faster.addActionListener(event -> fasterActionListener());
 		stopAndGO.addActionListener(event ->stopAndGoActionListener());
-		infectSomone.addActionListener(event -> infectSomoneActionListener());
+		addSomeoneBlue.addActionListener(event -> addSomeoneActionListener(0));
+		addSomeoneRed.addActionListener(event -> addSomeoneActionListener(1));
 
 		this.add(slower);
 		this.add(faster);
 		this.add(stopAndGO);
-		this.add(infectSomone);
+		this.add(addSomeoneBlue);
+		this.add(addSomeoneRed);
 	}
 
 
@@ -41,32 +48,24 @@ public class Canvas extends JPanel {
 		g2d.drawString("Speed x" + ((int)(Simulation.time*100)),700,20);
 
 		for (Vehicle fz : allVehicles) {
-			g2d.setColor(Color.BLACK);
-			if (fz.type == 1) {
+			if (fz.team == 1) {
 				g2d.setColor(Color.RED);
-				g2d.fillOval((int)(fz.pos[0]/pix),(int)(fz.pos[1]/pix),5,5);
 			}
-			g2d.drawOval((int)(fz.pos[0]/pix),(int)(fz.pos[1]/pix),5,5);
-
-//			int x = (int) (fz.pos[0] / pix);
-//			int y = (int) (fz.pos[1] / pix);
-
-
-//       		if(fz.type==1){
-//        		int seite = (int)(fz.rad_zus/pix);
-//            	g2d.drawOval(x-seite, y-seite, 2*seite, 2*seite);
-//        		seite = (int)(fz.rad_sep/pix);
-//            	g2d.drawOval(x-seite, y-seite, 2*seite, 2*seite);
-
-//       		}
+			else if(fz.team == 0){
+				g2d.setColor(Color.BLUE);
+			}
+			g2d.fillOval((int)(fz.pos[0]/pix),(int)(fz.pos[1]/pix),5,5);
 		}
 		g2d.setColor(Color.BLACK);
 		g2d.drawString("Infected: " + Simulation.infected,900,720);
 		g2d.drawString("Tag: " + (int) Simulation.day,900,700);
     }
 
-	private void infectSomoneActionListener() {
-		allVehicles.get(random.nextInt(allVehicles.size())).infect();
+	private void addSomeoneActionListener(int team) {
+		Vehicle vehicle = new Vehicle(team);
+		vehicle.setVelocity();
+		allVehicles.add(vehicle);
+		teams.get(team).addTeamMember(vehicle);
 	}
 
 	private void stopAndGoActionListener() {
