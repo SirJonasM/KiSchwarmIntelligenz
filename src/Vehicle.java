@@ -33,15 +33,15 @@ public class Vehicle {
 		this.radiusSeperateFromAllies = 20;
 		this.radiusToGroup = 50;// 25
 
-		this.max_acc = 0.15;// 0.1
+		this.max_acc = 0.1;// 0.1
 		this.max_vel = 0.1;
 		this.rad_Virus = 25;
 		this.team = team;
 
 		pos = new double[2];
 		vel = new double[2];
-		pos[0] = Simulation.pix * 500 * Math.random();
-		pos[1] = Simulation.pix * 500 * Math.random();
+		pos[0] = Simulation.pix * (20+(Simulation.width-40) * Math.random());
+		pos[1] = Simulation.pix * (20+(Simulation.hight-40) * Math.random());
 		vel[0] = max_vel * Math.random();
 		vel[1] = max_vel * Math.random();
 	}
@@ -200,8 +200,8 @@ public class Vehicle {
 		int separateFromEnemiesFactor = 15;
 		int separateFromAlliesFactor = 5;
 		int adjustFactor = 5; // 0.4
-		int randomFactor = 35;
-		int randomTeamVectorFactor = 3;
+		int randomFactor = 37;
+		int randomTeamVectorFactor = 1;
 
 		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor+randomTeamVectorFactor !=100)
 			throw new Exception();
@@ -271,19 +271,19 @@ public class Vehicle {
 	}
 
 	public void position_Umgebung_anpassen_Box() {
-		if (pos[0] < 10) {
+		if (pos[0] < 30*Simulation.pix) {
 			vel[0] = Math.abs(vel[0]);
 			pos[0] = pos[0] + vel[0];
 		}
-		if (pos[0] > Simulation.width * Simulation.pix) {
+		if (pos[0] > (Simulation.width-30) * Simulation.pix) {
 			vel[0] = -Math.abs(vel[0]);
 			pos[0] = pos[0] + vel[0];
 		}
-		if (pos[1] < 10) {
+		if (pos[1] < 30*Simulation.pix) {
 			vel[1] = Math.abs(vel[1]);
 			pos[1] = pos[1] + vel[1];
 		}
-		if (pos[1] > Simulation.hight * Simulation.pix) {
+		if (pos[1] > (Simulation.hight-100) * Simulation.pix) {
 			vel[1] = -Math.abs(vel[1]);
 			pos[1] = pos[1] + vel[1];
 		}

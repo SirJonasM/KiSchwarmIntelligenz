@@ -5,23 +5,23 @@ import java.util.Map;
 import java.util.Random;
 
 import javax.swing.*;
+import java.awt.Toolkit;
 
 public class Simulation extends JFrame {
 	public static final double standartTime = 0.01;
 	public static final double maximalTime = 0.10;
 	public static final double minimalTime = 0.0;
-	public static int width = 600;
-	public static int hight = 400;
-
+	public static int width = Toolkit.getDefaultToolkit().getScreenSize().width;
+	public static int hight = Toolkit.getDefaultToolkit().getScreenSize().height;
 	Random random  = new Random();
 	static double time = 0.0;
 	static double day = 0;
 	static int daySwitch = 0;
 	static int sleep = 8; // 8
 	static double pix = 0.2;// 0.2
-	int anzTeamMembers = 20;
-	int teamCount = 10;
-	Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW,Color.PINK,Color.CYAN,Color.ORANGE,Color.WHITE,Color.LIGHT_GRAY,Color.MAGENTA};
+	int anzTeamMembers =40;
+	static int teamCount = 20;
+	Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW,Color.PINK,Color.CYAN,Color.ORANGE,Color.WHITE,Color.LIGHT_GRAY,Color.MAGENTA,Color.DARK_GRAY};
 	ArrayList<Vehicle> allVehicles = new ArrayList<>();
 	final int MAXTEAMS = colors.length;
 	Map<Integer, Team> teams = new HashMap<>();
@@ -50,8 +50,8 @@ public class Simulation extends JFrame {
 		canvas = new Canvas(allVehicles,pix,teams);
 		add(canvas);
 		setSize(width, hight);
+		canvas.setSize(width,hight);
 		setVisible(true);
-
 	}
 
 	public static void main(String[] args) throws Exception {
