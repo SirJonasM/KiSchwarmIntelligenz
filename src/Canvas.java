@@ -1,8 +1,6 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Random;
-
 import javax.swing.*;
 
 
@@ -48,6 +46,7 @@ public class Canvas extends JPanel {
 	public void paintComponent(Graphics g) {
     	super.paintComponent(g);
     	Graphics2D g2d = (Graphics2D) g;
+		g2d.drawOval(Simulation.mouseTracker.getLocation().x,Simulation.mouseTracker.getLocation().y,20,20);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setColor(Color.LIGHT_GRAY);
 		g2d.drawString("Speed x" + ((Simulation.sleep)),820,20);

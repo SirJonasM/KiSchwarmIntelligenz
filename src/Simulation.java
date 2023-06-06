@@ -13,10 +13,8 @@ public class Simulation extends JFrame {
 	public static final double minimalTime = 0.0;
 	public static int width = Toolkit.getDefaultToolkit().getScreenSize().width;
 	public static int hight = Toolkit.getDefaultToolkit().getScreenSize().height;
-	Random random  = new Random();
 	static double time = 0.0;
 	static double day = 0;
-	static int daySwitch = 0;
 	static int sleep = 8; // 8
 	static double pix = 0.2;// 0.2
 	int anzTeamMembers =40;
@@ -26,6 +24,7 @@ public class Simulation extends JFrame {
 	final int MAXTEAMS = colors.length;
 	Map<Integer, Team> teams = new HashMap<>();
 	JPanel canvas;
+	static MouseTracker mouseTracker = new MouseTracker();
 
 	Simulation() {
 		setTitle("Swarm");
@@ -72,11 +71,6 @@ public class Simulation extends JFrame {
 			} catch (InterruptedException ignored) {
 			}repaint();
 			day += time;
-		}
-	}
-	private void virus(ArrayList<Vehicle> allVehicles) {
-		for(Vehicle vehicle: allVehicles){
-			vehicle.virus(allVehicles);
 		}
 	}
 }

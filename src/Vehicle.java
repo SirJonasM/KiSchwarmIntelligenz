@@ -21,8 +21,6 @@ public class Vehicle {
 	double max_acc; // Maximale Beschleunigung meter/Simulation.time^2
 	double max_vel; // Maximale Geschwindigkeit meter/Simulation.time soll immer 1 meter proSimulationszeit entsprechen
 	final double rad_Virus;
-	boolean hadContact = false;
-	private boolean dead;
 
 
 	Vehicle(int team) {
@@ -186,6 +184,13 @@ public class Vehicle {
 
 		return acc_dest;
 	}
+	double[] gotoMouse(){
+		double[] velocity = new double[2];
+		velocity[0] = Simulation.mouseTracker.getLocation().x * Simulation.pix - pos[0];
+		velocity[1] = Simulation.mouseTracker.getLocation().y * Simulation.pix - pos[1];
+		return calculateAcceleration(velocity);
+
+	}
 
 	double[] zufall() {
 		double[] acc_dest = new double[2];
@@ -193,6 +198,7 @@ public class Vehicle {
 		acc_dest[1] = max_acc * (Math.random()-0.5)/100.0;
 		return acc_dest;
 	}
+
 
 	public double[] beschleunigung_festlegen(ArrayList<Vehicle> allVehicles,Map<Integer,Team> teams) throws Exception {
 		//Setze die Faktoren wie die einzelnen Vektoren gewichtet werden sollen muss insgesamt 100 ergeben
@@ -202,6 +208,7 @@ public class Vehicle {
 		int adjustFactor = 5; // 0.4
 		int randomFactor = 37;
 		int randomTeamVectorFactor = 1;
+		//int mouseFactor = 61;
 
 		if(groupFactor+separateFromAlliesFactor+separateFromEnemiesFactor+adjustFactor+randomFactor+randomTeamVectorFactor !=100)
 			throw new Exception();
@@ -213,8 +220,8 @@ public class Vehicle {
 		double[] separateFromAllies = separierenVonTeam(teams);
 		double[] adjust = ausrichten(teams);
 		double[] random = zufall();
-
 		double[] randomFromTeam = teams.get(team).getRandomVector();
+		double[] mouseImpact = gotoMouse();
 
 
 
@@ -241,8 +248,8 @@ public class Vehicle {
 
 		//Berechne den gewichteten Beschleunigunsvektor
 		double[] acceleration = new double[]{
-				(group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0] + random[0]+randomFromTeam[0])/100.0,
-				(group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1] + random[1]+randomFromTeam[1])/100.0};
+				(group[0] + separateFromAllies[0] + separateFromEnemies[0] + adjust[0] + random[0]+randomFromTeam[0]+mouseImpact[0])/160.0,
+				(group[1] + separateFromAllies[1] + separateFromEnemies[1] + adjust[1] + random[1]+randomFromTeam[1]+mouseImpact[0])/160.0};
 		acceleration = Vektorrechnung.truncate(acceleration, max_acc);
 		return acceleration;
 	}
@@ -310,7 +317,6 @@ public class Vehicle {
 	public void infect() {
 		max_vel = 0;
 		wasInfected = true;
-		dead = true;
 	}
 
 
